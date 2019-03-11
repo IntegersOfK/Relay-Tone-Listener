@@ -3,6 +3,13 @@ import numpy as num
 import pyaudio
 import wave
 import time
+import RPi.GPIO as GPIO
+
+# Setup GPIO
+relayPin = 22 # BCM 22, Physical pin 15
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(relayPin, GPIO.OUT)
+GPIO.output(relayPin, GPIO.LOW)
 
 # PyAudio object.
 p = pyaudio.PyAudio()
@@ -29,20 +36,23 @@ while True:
     pitch = pDetection(samples)[0]
     # Compute the energy (volume) of the
     # current frame.
-    volume = num.sum(samples**2)/len(samples)
+    #volume = num.sum(samples**2)/len(samples)
     # Format the volume output so that at most
     # it has six decimal numbers.
-    volume = "{:.6f}".format(volume)
+    #volume = "{:.6f}".format(volume)
 
     print(pitch)
-    #print(volume)
+    # print(volume)
     check_buffer.append(pitch)
 
-    if len(check_buffer) > 10:
+    if len(check_buffer) >= 10:
 	# Do the check now that we have 10 samples
 	if len([buff for buff in check_buffer if buff > 3000 and buff < 3100]) > 5:
 		print("ALERTING")
+		GPIO.output(relayPin, GPIO.HIGH)
 		time.sleep(1);
+	else:
+		GPIO.output(relayPin, GPIO.LOW)
 	check_buffer = [] # Wipe the buffer to listen from scratch
 
     
