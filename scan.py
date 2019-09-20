@@ -8,18 +8,24 @@ def main():
     a = False
     while True:
         time.sleep(1)
-        l = subprocess.check_output(['iwlist', 'scanning']).splitlines()
-        for line in l:
-            if 'Test123' in line:
-                print('alarming')
-                a = True
-                break
-        else:
-            a = False
-        if a:
-            led.on()
-        else:
-            led.off()
+        ps = subprocess.Popen(['sudo', 'iw', 'wlan0','scan', 'flush'], shell=False, stdout=subprocess.PIPE)
+        grep = subprocess.Popen(['grep', 'SSID'], shell=False, stdin=ps.stdout, stdout=subprocess.PIPE)
+        grep_output,_ = grep.communicate()
+
+        for line in grep_output.split():
+            print (line)
+            if ('OnePlus' in line):
+               print('-----> alarming <------')
+               a = True
+               break
+
+            else:
+               a = False
+
+            if a:
+               led.on()
+            else:
+               led.off()
 
 if __name__ == '__main__':
     main()
